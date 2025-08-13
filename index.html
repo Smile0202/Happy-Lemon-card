@@ -16,15 +16,18 @@
   }
 
   #mobileScreen {
-    width: 375px;
-    height: 667px;
-    background: url('13.jpg') no-repeat center center;
-    background-size: cover;
-    position: relative;
-    overflow: hidden;
-    border-radius: 40px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-  }
+  width: 90vw;      /* 螢幕寬度的90% */
+  height: 90vh;     /* 螢幕高度的90% */
+  max-width: 375px; /* 最大寬度保持手機比例 */
+  max-height: 667px;
+  background: url('13.jpg') no-repeat center center;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+  border-radius: 40px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
 
   #cardContainer {
     width: 100%;
@@ -130,16 +133,18 @@ function startDraw() {
     card.className = "card";
     card.style.backgroundImage = `url('${backImage}')`;
     const angle = (i / total) * 360;
-    card.style.transform = `rotateY(${angle}deg) translateZ(80px)`; // 調整半徑
+    card.style.transform = `rotateY(${angle}deg) translateZ(120px)`; // 調整半徑
     group.appendChild(card);
     cards.push(card);
   }
 
   let rotation = 0;
-  const rotateInterval = setInterval(() => {
-    rotation += 2; // 旋轉速度
-    group.style.transform = `rotateY(${rotation}deg)`;
-  }, 20);
+function rotateCards() {
+  rotation += 2;
+  group.style.transform = `rotateY(${rotation}deg)`;
+  requestAnimationFrame(rotateCards);
+}
+rotateCards();
 
   setTimeout(() => {
     clearInterval(rotateInterval);
