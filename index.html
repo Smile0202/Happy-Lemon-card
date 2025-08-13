@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>3D 抽卡 Demo - 手機搖動版</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+  }
+
+  #mobileScreen {
+    width: 375px;
+    height: 667px;
+    background: url('13.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+    overflow: hidden;
+    border-radius: 40px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  #cardContainer {
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    position: relative;
+  }
+
+  .cardGroup {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    transform-style: preserve-3d;
+  }
+
+  .card {
+    width: 60px;
+    height: calc(60px * 800 / 600);
+    position: absolute;
+    top: calc(50% - 48px);
+    left: calc(50% - 30px);
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    transform-style: preserve-3d;
+    transition: opacity 1s ease, transform 1s ease;
+  }
+
+  .centerCard {
+    width: 100px;
+    height: calc(100px * 800 / 600);
+    position: absolute;
+    top: calc(50% - 65px);
+    left: calc(50% - 50px);
+    background-size: cover;
+    background-position: center;
+    border-radius: 16px;
+    box-shadow: 0 0 15px gold, 0 0 30px yellow;
+    z-index: 10;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+
+  .centerCard.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .star {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: flyStar 1.8s ease-out forwards;
+  }
+
+  @keyframes flyStar {
+    to {
+      transform: translate(var(--x), var(--y)) scale(0);
+      opacity: 0;
+    }
+  }
+
+  /* 透明按鈕 */
+  #startBtn {
+    position:absolute;
+    left:61.5px;
+    top:560.6px;
+    width:267px;
+    height:64px;
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    z-index:9999;
+  }
+</style>
+</head>
+<body>
+  <div id="mobileScreen">
+    <div id="cardContainer">
+      <div class="cardGroup" id="cardGroup"></div>
+    </div>
+    <button id="startBtn"></button>
+  </div>
+
+<script>
+const backImage = '9.jpg';
+const cardImages = ['1.jpg','2.jpg','3.jpg','4.jpg','5.jpg','6.jpg','8.jpg'];
+
+// 抽卡動畫
+function startDraw() {
+  const group = document.getElementById("cardGroup");
+  group.innerHTML = "";
+
+  const total = 8;
+  const cards = [];
+
+  for (let i = 0; i < total; i++) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.backgroundImage = `url('${backImage}')`;
+    const angle = (i / total) * 360;
+    card.style.transform = `rotateY(${angle}deg) translateZ(80px)`; // 調整半徑
+    group.appendChild(card);
+    cards.push(card);
+  }
+
+  let rotation = 0;
+  const rotateInterval = setInterval(() => {
+    rotation += 2; // 旋轉速度
+    group.style.transform = `rotateY(${rotation}deg)`;
+  }, 20);
+
+  setTimeout(() => {
+    clearInterval(rotateInterval);
+    cards.forEach(card => card.style.opacity = 0);
+    const chosenIndex = Math.floor(Math.random() * cardImages.length);
+    setTimeout(() => showCenterCard(cardImages[chosenIndex]), 500);
+  }, 3000);
+}
+
+// 顯示中心卡牌及星星效果
+function showCenterCard(imageUrl) {
+  const container = document.getElementById("cardContainer");
+  const centerCard = document.createElement("div");
+  centerCard.className = "centerCard";
+  centerCard.style.backgroundImage = `url('${imageUrl}')`;
+  container.appendChild(centerCard);
+  requestAnimationFrame(() => centerCard.classList.add('show'));
+  spawnStars(centerCard, 20);
+}
+
+function spawnStars(target, count) {
+  const rect = target.getBoundingClientRect();
+  for (let i = 0; i < count; i++) {
+    const star = document.createElement("div");
+    star.className = "star";
+    star.style.left = `${rect.left + rect.width/2}px`;
+    star.style.top = `${rect.top + rect.height/2}px`;
+    const angle = Math.random() * 2 * Math.PI;
+    const distance = 50 + Math.random() * 70;
+    star.style.setProperty("--x", `${Math.cos(angle) * distance}px`);
+    star.style.setProperty("--y", `${Math.sin(angle) * distance}px`);
+    document.body.appendChild(star);
+    setTimeout(() => star.remove(), 1800);
+  }
+}
+
+// 手機搖動事件
+function shakeHandler(event) {
+  const acc = event.accelerationIncludingGravity;
+  const now = Date.now();
+  const threshold = 15;
+  const timeGap = 1000;
+
+  if (!shakeHandler.lastShakeTime) shakeHandler.lastShakeTime = 0;
+
+  const totalAcc = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+
+  if (totalAcc > threshold && (now - shakeHandler.lastShakeTime > timeGap)) {
+    shakeHandler.lastShakeTime = now;
+    startDraw();
+  }
+}
+
+// iOS 權限按鈕
+const startBtn = document.getElementById("startBtn");
+startBtn.addEventListener("click", () => {
+  if (typeof DeviceMotionEvent !== 'undefined' && 
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    DeviceMotionEvent.requestPermission()
+      .then(permissionState => {
+        if (permissionState === 'granted') {
+          window.addEventListener('devicemotion', shakeHandler);
+          startBtn.style.display = 'none';
+          alert("搖一搖功能已啟動，請搖動手機試試看！");
+        } else {
+          alert("請允許搖一搖權限才能使用！");
+        }
+      })
+      .catch(console.error);
+  } else {
+    // 非iOS或不需權限
+    window.addEventListener('devicemotion', shakeHandler);
+    startBtn.style.display = 'none';
+    alert("搖一搖功能已啟動，請搖動手機試試看！");
+  }
+});
+</script>
+</body>
+</html>
