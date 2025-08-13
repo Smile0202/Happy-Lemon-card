@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>3D 弧形環繞抽卡 Demo - 滿版手機版</title>
+<title>3D 抽卡 Demo - 手機滿版</title>
 <style>
   html, body {
     margin: 0;
@@ -34,26 +34,26 @@
     width: 100%;
     height: 100%;
     position: absolute;
+    top: 50%;
+    left: 50%;
     transform-style: preserve-3d;
+    transform: translate(-50%, -50%) rotateY(0deg);
   }
 
   .card {
-    width: 80px;
-    height: calc(80px * 800 / 600);
+    width: 15vw; /* 根據螢幕寬度自適應 */
+    height: calc(15vw * 800 / 600);
     position: absolute;
-    top: 50%;
-    left: 50%;
     background-size: cover;
     background-position: center;
     border-radius: 12px;
     transform-style: preserve-3d;
     transition: opacity 1s ease, transform 1s ease;
-    transform: translate(-50%, -50%) rotateY(0deg) translateZ(0px);
   }
 
   .centerCard {
-    width: 140px;
-    height: calc(140px * 800 / 600);
+    width: 28vw;
+    height: calc(28vw * 800 / 600);
     position: absolute;
     top: 50%;
     left: 50%;
@@ -89,7 +89,6 @@
     }
   }
 
-  /* 測試用按鈕透明 */
   #startBtn {
     position: absolute;
     left: 50%;
@@ -103,7 +102,6 @@
     cursor: pointer;
     z-index: 9999;
   }
-
 </style>
 </head>
 <body>
@@ -125,14 +123,13 @@ function startDraw() {
 
   const total = 8;
   const cards = [];
-  const screenWidth = window.innerWidth;
 
   for (let i = 0; i < total; i++) {
     const card = document.createElement("div");
     card.className = "card";
     card.style.backgroundImage = `url('${backImage}')`;
     const angle = (i / total) * 360;
-    card.style.transform = `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${screenWidth/2}px)`;
+    card.style.transform = `rotateY(${angle}deg) translateZ(120px)`; // 半徑 120px
     group.appendChild(card);
     cards.push(card);
   }
@@ -140,7 +137,7 @@ function startDraw() {
   let rotation = 0;
   const rotateInterval = setInterval(() => {
     rotation += 3; // 旋轉速度
-    group.style.transform = `rotateY(${rotation}deg)`;
+    group.style.transform = `translate(-50%, -50%) rotateY(${rotation}deg)`;
   }, 20);
 
   setTimeout(() => {
@@ -177,9 +174,7 @@ function spawnStars(target, count) {
   }
 }
 
-// 透明按鈕觸發抽卡
 document.getElementById('startBtn').addEventListener('click', startDraw);
-
 </script>
 
 </body>
