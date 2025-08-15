@@ -2,21 +2,21 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>3D 抽卡 Demo - 手機滿版</title>
+<title>3D 弧形環繞抽卡 Demo - 滿版手機版</title>
 <style>
   html, body {
     margin: 0;
     padding: 0;
-    width: 100%;
     height: 100%;
-    overflow: hidden;
     background: #111;
     font-family: Arial, sans-serif;
+    overflow: hidden;
   }
 
+  /* 手機滿版容器 */
   #mobileScreen {
     width: 100vw;
-    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100); /* 使用 JS 計算的真實可見高度 */
     background: url('13.jpg') no-repeat center center;
     background-size: cover;
     position: relative;
@@ -31,29 +31,35 @@
   }
 
   .cardGroup {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotateY(0deg); /* 關鍵：先置中再旋轉 */
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
+}
+
+
+  .card {
+    width: 20vw;
+    height: calc(20vw * 800 / 600); /* 保持比例 */
     position: absolute;
     top: 50%;
     left: 50%;
-    transform-style: preserve-3d;
-    transform: translate(-50%, -50%) rotateY(0deg);
-  }
-
-  .card {
-    width: 15vw; /* 根據螢幕寬度自適應 */
-    height: calc(15vw * 800 / 600);
-    position: absolute;
     background-size: cover;
     background-position: center;
     border-radius: 12px;
     transform-style: preserve-3d;
     transition: opacity 1s ease, transform 1s ease;
+    background-color: red;
   }
 
   .centerCard {
-    width: 28vw;
-    height: calc(28vw * 800 / 600);
+    width: 80vw;
+    height: calc(80vw * 800 / 600);
     position: absolute;
     top: 50%;
     left: 50%;
@@ -89,31 +95,59 @@
     }
   }
 
-  #startBtn {
-    position: absolute;
-    left: 50%;
-    bottom: 50px;
-    transform: translateX(-50%);
-    width: 60%;
-    max-width: 300px;
-    height: 60px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    z-index: 9999;
-  }
+  /* 抽卡按鈕透明可點 */
+
+.drawButton {
+  position: absolute;
+  left: 52.04%;       /* 中心點 X / 1080 */
+  top: 98%;        /* 中心點 Y / 1920 */
+  transform: translate(-50%, -50%); /* 以中心點定位 */
+  width: 71.29%;      /* 寬 / 1080 */
+  height: 9.58%;      /* 高 / 1920 */
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 9999;
+}
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0); /* 初始透明 */
+  pointer-events: none;
+  z-index: 1; /* 確保 centerCard 在上面 */
+}
+
+
+.cardGroup, .centerCard {
+  position: absolute;
+  z-index: 10; /* 確保卡牌在 overlay 上面 */
+}
+
+
+
+
 </style>
 </head>
 <body>
-
-<div id="mobileScreen">
-  <div id="cardContainer">
-    <div class="cardGroup" id="cardGroup"></div>
+  <div id="mobileScreen">
+    <div id="cardContainer">
+      <div class="cardGroup" id="cardGroup"></div>
+       <div id="overlay"></div>
+    </div>
+    <button class="drawButton" onclick="startDraw()"></button>
   </div>
-  <button id="startBtn"></button>
-</div>
 
 <script>
+/* 修正 iOS / Android 瀏覽器工具列影響高度 */
+function setFullHeight() {
+  document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+}
+window.addEventListener('resize', setFullHeight);
+setFullHeight();
+
 const backImage = '9.jpg';
 const cardImages = ['1.jpg','2.jpg','3.jpg','4.jpg','5.jpg','6.jpg','8.jpg'];
 
@@ -129,14 +163,14 @@ function startDraw() {
     card.className = "card";
     card.style.backgroundImage = `url('${backImage}')`;
     const angle = (i / total) * 360;
-    card.style.transform = `rotateY(${angle}deg) translateZ(120px)`; // 半徑 120px
+    card.style.transform = `translate(-50%, -50%) rotateY(${angle}deg) translateZ(30vw)`;
     group.appendChild(card);
     cards.push(card);
   }
 
   let rotation = 0;
   const rotateInterval = setInterval(() => {
-    rotation += 3; // 旋轉速度
+    rotation += 1;
     group.style.transform = `translate(-50%, -50%) rotateY(${rotation}deg)`;
   }, 20);
 
@@ -149,6 +183,9 @@ function startDraw() {
 }
 
 function showCenterCard(imageUrl) {
+  const overlay = document.getElementById('overlay');
+  overlay.style.background = 'rgba(0,0,0,0.4)'; // 抽卡後才變暗
+
   const container = document.getElementById("cardContainer");
   const centerCard = document.createElement("div");
   centerCard.className = "centerCard";
@@ -157,6 +194,7 @@ function showCenterCard(imageUrl) {
   requestAnimationFrame(() => centerCard.classList.add('show'));
   spawnStars(centerCard, 20);
 }
+
 
 function spawnStars(target, count) {
   const rect = target.getBoundingClientRect();
@@ -173,9 +211,6 @@ function spawnStars(target, count) {
     setTimeout(() => star.remove(), 1800);
   }
 }
-
-document.getElementById('startBtn').addEventListener('click', startDraw);
 </script>
-
 </body>
 </html>
