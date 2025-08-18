@@ -169,31 +169,23 @@ html, body {
 }
 
 /* 改用 Grid 排版 */
-.fullSetRow {
+.fullSetRow, .zeroCards {
   display: flex;
-  justify-content: center; /* 水平置中 */
   flex-wrap: wrap;
-  gap: 10px;
+  justify-content: center;
+  gap: 10px; /* 固定間距 */
 }
-.zeroCards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  justify-items: center;
-}
-.fullSetRow img {
-  width: calc((100% - 30px)/4); /* 四張一行 */
-  max-width: 120px;
-  height: auto;
-}
-.zeroCards img {
-  width: 100%;
-  max-width: calc((100% - 30px)/4);
+
+.fullSetRow img, .zeroCards img {
+  flex: 0 0 calc((100% - 30px)/4); /* 四張一行，扣掉 gap */
+  width: 100%;                     /* 讓 flex-basis 生效 */
   height: auto;
   border-radius: 8px;
   box-shadow: 0 0 10px gold;
   cursor: pointer;
+  max-width: none;                 /* 移除上限，手機可以放大 */
 }
+
 
 .close-button{
   position:absolute;
