@@ -163,12 +163,14 @@ bottom: calc(2% + env(safe-area-inset-bottom));
 }
 
 .fullSetRow img {
-  flex: 0 0 calc(25% - 10px);  /* 桌面 4 張/行，手機自動換行 */
-  max-width: 120px;
+  flex: 0 0 25%;   /* 每行固定 4 張 */
+  max-width: 25%;  /* 佔螢幕 1/4，保證滿版 */
+  height: auto;
 }
 .zeroCards img { 
-  flex: 1; 
-  max-width: 120px; }
+  flex: 0 0 25%;   /* 每行固定 4 張 */
+  max-width: 25%;  /* 佔螢幕 1/4，保證滿版 */
+  height: auto; }
 
 .close-button{
   position:absolute;
