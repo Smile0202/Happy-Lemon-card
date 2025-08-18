@@ -4,21 +4,150 @@
 <meta charset="UTF-8">
 <title>3D 抽卡 Demo - 重構版</title>
 <style>
-html, body {margin:0;padding:0;height:100%;font-family:Arial,sans-serif;overflow:hidden;background:#111;}
-#mobileScreen{width:100vw;height:calc(var(--vh,1vh)*100);background:url('13.jpg') no-repeat center center;background-size:cover;position:relative;overflow:hidden;}
-#cardContainer{width:100%;height:100%;perspective:1000px;position:relative;}
-.cardGroup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotateY(0deg);transform-style:preserve-3d;will-change:transform;}
-.card{width:20vw;height:calc(20vw*800/600);position:absolute;top:50%;left:50%;background-size:cover;background-position:center;border-radius:12px;transform-style:preserve-3d;transition:opacity 1s, transform 1s;background-color:red;}
-.centerCard{width:80vw;height:calc(80vw*800/600);position:absolute;top:50%;left:50%;background-size:cover;background-position:center;border-radius:16px;box-shadow:0 0 25px gold,0 0 50px yellow;z-index:10;opacity:0;transform:translate(-50%,-50%) scale(0.5);transition:opacity 1s, transform 1s;}
-.centerCard.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
-.star{position:absolute;width:8px;height:8px;background:white;border-radius:50%;pointer-events:none;animation:flyStar 1.8s ease-out forwards;}
-@keyframes flyStar{to{transform:translate(var(--x),var(--y)) scale(0);opacity:0;}}
-.drawButton{position:absolute;left:52.04%;top:98%;transform:translate(-50%,-50%);width:71.29%;height:9.58%;background:transparent;border:none;cursor:pointer;z-index:9999;}
-#overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0);pointer-events:none;z-index:1;}
-.cardGroup,.centerCard{position:absolute;z-index:10;}
-.viewButton{position:absolute;bottom:2%;right:2%;padding:10px 15px;font-size:16px;border:none;background:rgba(255,215,0,0.8);color:black;border-radius:8px;cursor:pointer;z-index:9999;}
-#myCardsModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;color:white;overflow-y:auto;text-align:center;padding-top:50px;}
-#myCardsContent{max-width:95%;margin:0 auto;color:white;display:flex;flex-direction:column;align-items:center;gap:20px;}
+html, body {
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family:Arial,sans-serif;
+  overflow:hidden;
+  background:#111;}
+
+#mobileScreen{
+  width:100vw;
+  height:calc(var(--vh,1vh)*100);
+  background:url('13.jpg') no-repeat center center;
+  background-size:cover;
+  position:relative;
+  overflow:hidden;
+padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;}
+
+#cardContainer{
+  width:100%;
+  height:100%;
+  perspective:1000px;
+  position:relative;}
+
+.cardGroup{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) rotateY(0deg);
+  transform-style:preserve-3d;
+  will-change:transform;}
+
+.card{
+  width:20vw;
+  height:calc(20vw*800/600);
+  position:absolute;
+  top:50%;
+  left:50%;
+  background-size:cover;
+  background-position:center;
+  border-radius:12px;
+  transform-style:preserve-3d;
+  transition:opacity 1s, transform 1s;
+  background-color:red;}
+
+.centerCard{
+  width:80vw;
+  height:calc(80vw*800/600);
+  position:absolute;
+  top:50%;
+  left:50%;
+  background-size:cover;
+  background-position:center;
+  border-radius:16px;
+  box-shadow:0 0 25px gold,0 0 50px yellow;
+  z-index:10;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(0.5);
+  transition:opacity 1s, transform 1s;}
+
+.centerCard.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);}
+
+.star{
+  position:absolute;
+  width:20px;
+  height:20px;
+  background:white;
+  border-radius:50%;
+  pointer-events:none;
+  animation:flyStar 1.8s ease-out forwards;}
+
+@keyframes flyStar{to{
+  transform:translate(var(--x),var(--y)) scale(0);
+  opacity:0;}}
+
+.drawButton{
+  position:absolute;
+  left:52.04%;
+  top:98%;
+  transform:translate(-50%,-50%);
+  width:71.29%;
+  height:9.58%;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  z-index:9999;
+top: auto;
+  bottom: calc(5% + env(safe-area-inset-bottom));}
+
+#overlay{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0);
+  pointer-events:none;
+  z-index:1;}
+
+.cardGroup,.centerCard{
+  position:absolute;
+  z-index:10;}
+
+.viewButton{
+  position:absolute;
+  bottom:2%;
+  right:2%;
+  padding:10px 15px;
+  font-size:16px;
+  border:none;
+  background:rgba(255,215,0,0.8);
+  color:black;
+  border-radius:8px;
+  cursor:pointer;
+  z-index:9999;
+bottom: calc(2% + env(safe-area-inset-bottom));
+  right: calc(2% + env(safe-area-inset-right));}
+
+#myCardsModal{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.8);
+  z-index:10000;
+  color:white;
+  overflow-y:auto;
+  text-align:center;
+  padding-top:50px;}
+
+#myCardsContent{
+  max-width:95%;
+  margin:0 auto;
+  color:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;}
+
 #myCardsContent img {
   width: 100%;        /* 佔滿容器 */
   max-width: 120px;   /* 最大 120px */
@@ -26,18 +155,85 @@ html, body {margin:0;padding:0;height:100%;font-family:Arial,sans-serif;overflow
   box-shadow: 0 0 10px gold;
   cursor: pointer;
 }
-.fullSetRow img { flex: 1; max-width: 120px; }
-.zeroCards img { flex: 1; max-width: 120px; }
+.fullSetRow {
+  display: flex;
+  flex-wrap: wrap;       /* 超過寬度自動換行 */
+  justify-content: center;
+  gap: 10px;
+}
 
+.fullSetRow img {
+  flex: 0 0 calc(25% - 10px);  /* 桌面 4 張/行，手機自動換行 */
+  max-width: 120px;
+}
+.zeroCards img { 
+  flex: 1; 
+  max-width: 120px; }
 
-.close-button{position:absolute;top:15px;right:15px;width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;border:none;color:white;font-size:24px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10001;}
+.close-button{
+  position:absolute;
+  top:15px;
+  right:15px;
+  width:40px;
+  height:40px;
+  background:rgba(255,255,255,0.2);
+  border-radius:50%;
+  border:none;
+  color:white;
+  font-size:24px;
+  font-weight:bold;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10001;}
+
 .close-button:hover{background:rgba(255,255,255,0.3);}
-.fullSet{display:flex;flex-direction:column;gap:5px;}
-.fullSetRow{display:flex;justify-content:center;gap:15px;}
-.zeroCards{display:flex;flex-wrap:wrap;justify-content:center;gap:15px;}
-#redeemModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:20000;align-items:center;justify-content:center;}
-#redeemModalContent{background:white;color:black;padding:20px;border-radius:12px;width:80%;max-width:400px;text-align:center;}
-#redeemModalContent button{margin:10px;padding:10px 20px;font-size:18px;border:none;border-radius:8px;cursor:pointer;}
+
+.fullSet{
+  display:flex;
+  flex-direction:column;
+  gap:5px;}
+
+.fullSetRow{
+  display:flex;
+  justify-content:center;
+  gap:15px;}
+
+.zeroCards{
+  display:flex;
+  flex-wrap:wrap;justify-content:center;
+  gap:15px;}
+
+#redeemModal{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.7);
+  z-index:20000;
+  align-items:center;
+  justify-content:center;}
+
+#redeemModalContent{
+  background:white;
+  color:black;
+  padding:20px;
+  border-radius:12px;
+  width:80%;
+  max-width:400px;
+  text-align:center;}
+
+#redeemModalContent button{
+  margin:10px;
+  padding:10px 20px;
+  font-size:18px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;}
+
 #confirmBtn{background:#ffcc00;}
 #cancelBtn{background:#ccc;}
 </style>
@@ -109,7 +305,7 @@ function startDraw() {
   resetDraw(); // 中斷舊動畫
 
   const group = document.getElementById("cardGroup");
-  const total = 8; 
+  const total = 6; 
   let cards = [];
 
   // 生成卡片
