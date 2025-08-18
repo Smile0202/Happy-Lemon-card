@@ -163,7 +163,36 @@ html, body {
 }
 
 /* 卡片容器調整 */
-.fullSetRow, .zeroCards {
+.fullSet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.fullSetRow {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+/* 第一行4張卡片 */
+.fullSetRow:first-child {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* 第二行3張卡片 - 使用特殊佈局使其置中 */
+.fullSetRow:last-child {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 75%; /* 讓3張卡片的行寬度是4張的75% */
+  margin: 0 auto; /* 置中 */
+}
+
+/* 零散卡片保持4列 */
+.zeroCards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
@@ -203,13 +232,6 @@ html, body {
 
 .close-button:hover{background:rgba(255,255,255,0.3);}
 
-.fullSet{
-  display:flex;
-  flex-direction:column;
-  align-items: center;
-  gap:5px;
-  width: 100%;
-}
 
 #redeemModal{
   display:none;
