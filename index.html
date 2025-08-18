@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>3D 抽卡 Demo - 重構版</title>
+<title>3D 抽卡 Demo - 改良版</title>
 <style>
 html, body {
   margin:0;
@@ -10,7 +10,8 @@ html, body {
   height:100%;
   font-family:Arial,sans-serif;
   overflow:hidden;
-  background:#111;}
+  background:#111;
+}
 
 #mobileScreen{
   width:100vw;
@@ -19,15 +20,17 @@ html, body {
   background-size:cover;
   position:relative;
   overflow:hidden;
-padding-top: env(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
-  box-sizing: border-box;}
+  box-sizing: border-box;
+}
 
 #cardContainer{
   width:100%;
   height:100%;
   perspective:1000px;
-  position:relative;}
+  position:relative;
+}
 
 .cardGroup{
   position:absolute;
@@ -35,7 +38,8 @@ padding-top: env(safe-area-inset-top);
   left:50%;
   transform:translate(-50%,-50%) rotateY(0deg);
   transform-style:preserve-3d;
-  will-change:transform;}
+  will-change:transform;
+}
 
 .card{
   width:20vw;
@@ -48,7 +52,8 @@ padding-top: env(safe-area-inset-top);
   border-radius:12px;
   transform-style:preserve-3d;
   transition:opacity 1s, transform 1s;
-  background-color:red;}
+  background-color:red;
+}
 
 .centerCard{
   width:80vw;
@@ -63,11 +68,13 @@ padding-top: env(safe-area-inset-top);
   z-index:10;
   opacity:0;
   transform:translate(-50%,-50%) scale(0.5);
-  transition:opacity 1s, transform 1s;}
+  transition:opacity 1s, transform 1s;
+}
 
 .centerCard.show{
   opacity:1;
-  transform:translate(-50%,-50%) scale(1);}
+  transform:translate(-50%,-50%) scale(1);
+}
 
 .star{
   position:absolute;
@@ -76,7 +83,8 @@ padding-top: env(safe-area-inset-top);
   background:white;
   border-radius:50%;
   pointer-events:none;
-  animation:flyStar 1.8s ease-out forwards;}
+  animation:flyStar 1.8s ease-out forwards;
+}
 
 @keyframes flyStar{to{
   transform:translate(var(--x),var(--y)) scale(0);
@@ -93,8 +101,9 @@ padding-top: env(safe-area-inset-top);
   border:none;
   cursor:pointer;
   z-index:9999;
-top: auto;
-  bottom: calc(5% + env(safe-area-inset-bottom));}
+  top:auto;
+  bottom: calc(5% + env(safe-area-inset-bottom));
+}
 
 #overlay{
   position:absolute;
@@ -104,16 +113,18 @@ top: auto;
   height:100%;
   background:rgba(0,0,0,0);
   pointer-events:none;
-  z-index:1;}
+  z-index:1;
+}
 
 .cardGroup,.centerCard{
   position:absolute;
-  z-index:10;}
+  z-index:10;
+}
 
 .viewButton{
   position:absolute;
-  bottom:2%;
-  right:2%;
+  bottom: calc(2% + env(safe-area-inset-bottom));
+  right: calc(2% + env(safe-area-inset-right));
   padding:10px 15px;
   font-size:16px;
   border:none;
@@ -122,8 +133,7 @@ top: auto;
   border-radius:8px;
   cursor:pointer;
   z-index:9999;
-bottom: calc(2% + env(safe-area-inset-bottom));
-  right: calc(2% + env(safe-area-inset-right));}
+}
 
 #myCardsModal{
   display:none;
@@ -137,7 +147,8 @@ bottom: calc(2% + env(safe-area-inset-bottom));
   color:white;
   overflow-y:auto;
   text-align:center;
-  padding-top:50px;}
+  padding-top:50px;
+}
 
 #myCardsContent{
   max-width:95%;
@@ -146,31 +157,43 @@ bottom: calc(2% + env(safe-area-inset-bottom));
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:20px;}
+  gap:20px;
+}
 
 #myCardsContent img {
-  width: 100%;        /* 佔滿容器 */
-  max-width: 120px;   /* 最大 120px */
+  width: 100%;
+  max-width: 120px;
   border-radius: 8px;
   box-shadow: 0 0 10px gold;
   cursor: pointer;
 }
+
+/* 改用 Grid 排版 */
 .fullSetRow {
   display: flex;
-  flex-wrap: wrap;       /* 超過寬度自動換行 */
-  justify-content: center;
+  justify-content: center; /* 水平置中 */
+  flex-wrap: wrap;
   gap: 10px;
 }
-
+.zeroCards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  justify-items: center;
+}
 .fullSetRow img {
-  flex: 0 0 25%;   /* 每行固定 4 張 */
-  max-width: 25%;  /* 佔螢幕 1/4，保證滿版 */
+  width: calc((100% - 30px)/4); /* 四張一行 */
+  max-width: 120px;
   height: auto;
 }
-.zeroCards img { 
-  flex: 0 0 25%;   /* 每行固定 4 張 */
-  max-width: 25%;  /* 佔螢幕 1/4，保證滿版 */
-  height: auto; }
+.zeroCards img {
+  width: 100%;
+  max-width: calc((100% - 30px)/4);
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 10px gold;
+  cursor: pointer;
+}
 
 .close-button{
   position:absolute;
@@ -188,24 +211,17 @@ bottom: calc(2% + env(safe-area-inset-bottom));
   display:flex;
   align-items:center;
   justify-content:center;
-  z-index:10001;}
+  z-index:10001;
+}
 
 .close-button:hover{background:rgba(255,255,255,0.3);}
 
 .fullSet{
   display:flex;
   flex-direction:column;
-  gap:5px;}
-
-.fullSetRow{
-  display:flex;
-  justify-content:center;
-  gap:15px;}
-
-.zeroCards{
-  display:flex;
-  flex-wrap:wrap;justify-content:center;
-  gap:15px;}
+  align-items: center;
+  gap:5px;
+}
 
 #redeemModal{
   display:none;
@@ -217,7 +233,8 @@ bottom: calc(2% + env(safe-area-inset-bottom));
   background:rgba(0,0,0,0.7);
   z-index:20000;
   align-items:center;
-  justify-content:center;}
+  justify-content:center;
+}
 
 #redeemModalContent{
   background:white;
@@ -226,7 +243,8 @@ bottom: calc(2% + env(safe-area-inset-bottom));
   border-radius:12px;
   width:80%;
   max-width:400px;
-  text-align:center;}
+  text-align:center;
+}
 
 #redeemModalContent button{
   margin:10px;
@@ -234,7 +252,8 @@ bottom: calc(2% + env(safe-area-inset-bottom));
   font-size:18px;
   border:none;
   border-radius:8px;
-  cursor:pointer;}
+  cursor:pointer;
+}
 
 #confirmBtn{background:#ffcc00;}
 #cancelBtn{background:#ccc;}
@@ -250,14 +269,12 @@ bottom: calc(2% + env(safe-area-inset-bottom));
   <button class="viewButton" onclick="showMyCards()">查看我的卡片</button>
 </div>
 
-<!-- 我的卡片模態 -->
 <div id="myCardsModal">
   <div id="myCardsContent">
     <button class="close-button" onclick="closeMyCardsModal()">×</button>
   </div>
 </div>
 
-<!-- 兌換模態 -->
 <div id="redeemModal">
   <div id="redeemModalContent">
     <p id="redeemText" style="font-size:20px;line-height:1.5;"></p>
@@ -267,18 +284,16 @@ bottom: calc(2% + env(safe-area-inset-bottom));
 </div>
 
 <script>
-  
-/* 高度修正 */
-function setFullHeight(){document.documentElement.style.setProperty('--vh',window.innerHeight*0.01+'px');}
-window.addEventListener('resize',setFullHeight); setFullHeight();
+function setFullHeight(){
+  document.documentElement.style.setProperty('--vh',window.innerHeight*0.01+'px');
+}
+window.addEventListener('resize',setFullHeight);
+setFullHeight();
 
-/* 卡片資料 */
 const backImage='9.jpg';
 const cardImages=['1.jpg','22.jpg','3.jpg','4.jpg','21.jpg','20.jpg','23.jpg'];
 const cardActivities={'1.jpg':'折5元','22.jpg':'折10元','3.jpg':'買一送一','4.jpg':'折8元','21.jpg':'加購半價','20.jpg':'折3元','23.jpg':'隨機小禮物'};
-const maxDrawPerDay=100;
 
-/* 抽卡紀錄 */
 function getDrawData(){
   let data = JSON.parse(localStorage.getItem('drawData')) || {today:new Date().toISOString().split('T')[0],count:0,cards:[]};
   const today = new Date().toISOString().split('T')[0];
@@ -286,84 +301,64 @@ function getDrawData(){
   return data;
 }
 function saveDrawData(data){localStorage.setItem('drawData',JSON.stringify(data));}
-let rotateInterval = null;  // 全域存放旋轉定時器
+
+let rotateInterval = null;
 let centerCardTimeout = null;
 let currentCenterCard = null;
-/* 抽卡動畫 */
+
 function resetDraw() {
-  // 清掉旋轉
-  if (rotateInterval) { clearInterval(rotateInterval); rotateInterval = null; }
-  // 清掉等待顯示中心卡片的 timeout
-  if (centerCardTimeout) { clearTimeout(centerCardTimeout); centerCardTimeout = null; }
-  // 移除中心卡片
-  if (currentCenterCard) { currentCenterCard.remove(); currentCenterCard = null; }
-  // 清空卡片群組
-  const group = document.getElementById("cardGroup");
-  group.innerHTML = "";
-  document.getElementById("overlay").style.background = "rgba(0,0,0,0)";
+  if(rotateInterval){ clearInterval(rotateInterval); rotateInterval=null; }
+  if(centerCardTimeout){ clearTimeout(centerCardTimeout); centerCardTimeout=null; }
+  if(currentCenterCard){ currentCenterCard.remove(); currentCenterCard=null; }
+  document.getElementById("cardGroup").innerHTML="";
+  document.getElementById("overlay").style.background="rgba(0,0,0,0)";
 }
 
-function startDraw() {
-  resetDraw(); // 中斷舊動畫
-
-  const group = document.getElementById("cardGroup");
-  const total = 6; 
-  let cards = [];
-
-  // 生成卡片
-  for (let i = 0; i < total; i++) {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.backgroundImage = `url('${backImage}')`;
-    const angle = (i / total) * 360;
-    card.style.transform = `translate(-50%,-50%) rotateY(${angle}deg) translateZ(30vw)`;
+function startDraw(){
+  resetDraw();
+  const group=document.getElementById("cardGroup");
+  const total=6; 
+  let cards=[];
+  for(let i=0;i<total;i++){
+    const card=document.createElement("div");
+    card.className="card";
+    card.style.backgroundImage=`url('${backImage}')`;
+    const angle=(i/total)*360;
+    card.style.transform=`translate(-50%,-50%) rotateY(${angle}deg) translateZ(30vw)`;
     group.appendChild(card);
     cards.push(card);
   }
+  let rotation=0;
+  rotateInterval=setInterval(()=>{rotation+=1; group.style.transform=`translate(-50%,-50%) rotateY(${rotation}deg)`;},20);
 
-  // 開始旋轉
-  let rotation = 0;
-  rotateInterval = setInterval(() => {
-    rotation += 1;
-    group.style.transform = `translate(-50%,-50%) rotateY(${rotation}deg)`;
-  }, 20);
-
-  // 抽卡延遲
-  centerCardTimeout = setTimeout(() => {
-    clearInterval(rotateInterval); rotateInterval = null;
-    cards.forEach(c => c.style.opacity = 0);
-
-    const chosenCard = cardImages[Math.floor(Math.random() * cardImages.length)];
+  centerCardTimeout=setTimeout(()=>{
+    clearInterval(rotateInterval); rotateInterval=null;
+    cards.forEach(c=>c.style.opacity=0);
+    const chosenCard=cardImages[Math.floor(Math.random()*cardImages.length)];
     showCenterCard(chosenCard);
-
-    let data = getDrawData();
+    let data=getDrawData();
     data.count++;
     data.cards.push(chosenCard);
     saveDrawData(data);
-  }, 3000);
+  },3000);
 }
 
-
-function showCenterCard(imageUrl) {
-  const overlay = document.getElementById('overlay');
-  overlay.style.background = 'rgba(0,0,0,0.4)';
-
-  const container = document.getElementById("cardContainer");
-  const centerCard = document.createElement("div");
-  centerCard.className = "centerCard";
-  centerCard.style.backgroundImage = `url('${imageUrl}')`;
+function showCenterCard(imageUrl){
+  const overlay=document.getElementById('overlay');
+  overlay.style.background='rgba(0,0,0,0.4)';
+  const container=document.getElementById("cardContainer");
+  const centerCard=document.createElement("div");
+  centerCard.className="centerCard";
+  centerCard.style.backgroundImage=`url('${imageUrl}')`;
   container.appendChild(centerCard);
-  currentCenterCard = centerCard;
-
-  requestAnimationFrame(() => centerCard.classList.add('show'));
-  spawnStars(centerCard, 20);
-
-  setTimeout(() => {
-    overlay.style.background = 'rgba(0,0,0,0)';
-    if (centerCard) { centerCard.remove(); currentCenterCard = null; }
-  }, 5000);
+  currentCenterCard=centerCard;
+  requestAnimationFrame(()=>centerCard.classList.add('show'));
+  spawnStars(centerCard,20);
+  setTimeout(()=>{
+    overlay.style.background='rgba(0,0,0,0)';
+    if(centerCard){ centerCard.remove(); currentCenterCard=null; }
+  },5000);
 }
-
 
 function spawnStars(target,count){
   const rect=target.getBoundingClientRect();
@@ -381,8 +376,8 @@ function spawnStars(target,count){
   }
 }
 
-/* ===== 我的卡片模態 ===== */
-let redeemTarget = null;
+/* 我的卡片模態 */
+let redeemTarget=null;
 
 function closeMyCardsModal(){document.getElementById('myCardsModal').style.display='none';}
 
@@ -390,10 +385,10 @@ function showMyCards(){
   const modal=document.getElementById('myCardsModal');
   const content=document.getElementById('myCardsContent');
   content.innerHTML=`<button class="close-button" onclick="closeMyCardsModal()">×</button><h2>我的卡片</h2>`;
-  let data=getDrawData(); let myCards=[...data.cards];
+  let data=getDrawData();
+  let myCards=[...data.cards];
   let groupCount=0;
 
-  // 完整七張組
   while(cardImages.every(img=>myCards.includes(img))){
     groupCount++;
     content.innerHTML+=`<h3>第 ${groupCount} 組完整七張 🎉</h3>`;
@@ -406,7 +401,6 @@ function showMyCards(){
     content.innerHTML+=`<div style="margin:15px;"><button onclick="event.stopPropagation(); openRedeemModal('group',${groupCount})" style="padding:10px 20px;font-size:18px;border:none;border-radius:8px;background:#ff6600;color:white;cursor:pointer;">兌換一杯飲品</button></div>`;
   }
 
-  // 零散卡片
   if(myCards.length>0){
     content.innerHTML+="<h3>零散卡片</h3>";
     let zeroHTML=`<div class="zeroCards">`;
@@ -418,7 +412,7 @@ function showMyCards(){
   modal.style.display='flex';
 }
 
-/* ===== 統一兌換模態 ===== */
+/* 兌換模態 */
 function openRedeemModal(type,target){
   redeemTarget={type,target};
   const modal=document.getElementById("redeemModal");
@@ -430,7 +424,6 @@ function openRedeemModal(type,target){
   modal.style.display="flex";
 }
 function closeRedeem(){document.getElementById("redeemModal").style.display="none"; redeemTarget=null;}
-
 function confirmRedeem(event){
   event.stopPropagation();
   if(!redeemTarget) return;
@@ -447,7 +440,7 @@ function confirmRedeem(event){
 
   saveDrawData(data);
   closeRedeem();
-  showMyCards(); // 重新渲染我的卡片
+  showMyCards();
 }
 </script>
 </body>
