@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>3D 抽卡 Demo - 改良版</title>
 <style>
 html, body {
@@ -11,6 +12,7 @@ html, body {
   font-family:Arial,sans-serif;
   overflow:hidden;
   background:#111;
+  touch-action: manipulation;
 }
 
 #mobileScreen{
@@ -92,16 +94,15 @@ html, body {
 
 .drawButton{
   position:absolute;
-  left:52.04%;
-  top:98%;
-  transform:translate(-50%,-50%);
-  width:71.29%;
-  height:9.58%;
+  left:50%;
+  transform:translateX(-50%);
+  width:80%;
+  max-width:300px;
+  height:50px;
   background:transparent;
   border:none;
   cursor:pointer;
   z-index:9999;
-  top:auto;
   bottom: calc(5% + env(safe-area-inset-bottom));
 }
 
@@ -151,41 +152,35 @@ html, body {
 }
 
 #myCardsContent{
-  max-width:95%;
+  width:95%;
   margin:0 auto;
   color:white;
   display:flex;
   flex-direction:column;
   align-items:center;
   gap:20px;
+  padding-bottom: 20px;
 }
 
-#myCardsContent img {
-  width: 100%;
-  max-width: 120px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px gold;
-  cursor: pointer;
-}
-
-/* 改用 Grid 排版 */
+/* 卡片容器調整 */
 .fullSetRow, .zeroCards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 固定四列 */
-  gap: 10px;                             /* 卡片間距 */
-  justify-content: center;               /* 置中整個 grid */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
   width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
+/* 卡片大小調整 */
 .fullSetRow img, .zeroCards img {
-  width: 100%;       /* 讓每格佔滿單元格 */
-  height: auto;
+  width: 100%;
+  aspect-ratio: 3/4;
   border-radius: 8px;
   box-shadow: 0 0 10px gold;
   cursor: pointer;
+  object-fit: cover;
 }
-
-
 
 .close-button{
   position:absolute;
@@ -213,6 +208,7 @@ html, body {
   flex-direction:column;
   align-items: center;
   gap:5px;
+  width: 100%;
 }
 
 #redeemModal{
@@ -249,6 +245,28 @@ html, body {
 
 #confirmBtn{background:#ffcc00;}
 #cancelBtn{background:#ccc;}
+
+/* 響應式調整 */
+@media (max-width: 600px) {
+  .fullSetRow, .zeroCards {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  
+  #myCardsContent {
+    width: 90%;
+  }
+  
+  .viewButton {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  .drawButton {
+    height: 45px;
+    bottom: calc(7% + env(safe-area-inset-bottom));
+  }
+}
 </style>
 </head>
 <body>
