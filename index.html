@@ -285,6 +285,8 @@ html, body {
 </style>
 </head>
 <body>
+  <button onclick="resetDrawData()">重置抽卡</button>
+
 <div id="mobileScreen">
   <div id="cardContainer">
     <div class="cardGroup" id="cardGroup"></div>
@@ -310,6 +312,10 @@ html, body {
 </div>
 
 <script>
+  function resetDrawData() {
+  localStorage.removeItem('drawData');
+  alert("抽卡紀錄已重置 ✅");
+}
 /* 設定視窗高度變數 */
 function setFullHeight(){
   document.documentElement.style.setProperty('--vh',window.innerHeight*0.01+'px');
@@ -363,37 +369,71 @@ function drawCardByWeight(pool){
 
 /* 核心抽卡流程 */
 function startDraw() {
-  const data=getDrawData();
-  if(data.drawCount>=15){ alert("🍋今天的抽卡能量歸零！⚡️明天再來！"); return; }
+    let data = getDrawData();
+    if (data.drawCount >= 15) { 
+        alert("🍋今天的抽卡能量歸零！⚡️明天再來！"); 
+        return; 
+    }
 
-  resetDraw();
-  const group=document.getElementById("cardGroup");
-  const total=7;
-  let cards=[];
-  for(let i=0;i<total;i++){
-    const card=document.createElement("div");
-    card.className="card";
-    card.style.backgroundImage=`url('${backImage}')`;
-    const angle=(i/total)*360;
-    card.style.transform=`translate(-50%,-50%) rotateY(${angle}deg) translateZ(30vw)`;
-    group.appendChild(card);
-    cards.push(card);
-  }
+    resetDraw();
+    const group = document.getElementById("cardGroup");
+    const total = 7;
+    let cards = [];
 
-  let rotation=0;
-  rotateInterval=setInterval(()=>{ rotation+=1; group.style.transform=`translate(-50%,-50%) rotateY(${rotation}deg)`; },20);
+    // 創建卡片模型
+    for (let i = 0; i < total; i++) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.backgroundImage = `url('${backImage}')`;
+        const angle = (i / total) * 360;
+        card.style.transform = `translate(-50%,-50%) rotateY(${angle}deg) translateZ(30vw)`;
+        group.appendChild(card);
+        cards.push(card);
+    }
 
-  centerCardTimeout=setTimeout(()=>{
-    clearInterval(rotateInterval); rotateInterval=null;
-    cards.forEach(c=>c.style.opacity=0);
-    const chosenCard = drawCardByWeight(cardPool);
-    showCenterCard(chosenCard);
-    let data=getDrawData();
-    data.drawCount++; data.totalDraws++; data.cards.push(chosenCard);
-    data.lastDrawDate=new Date().toISOString().split('T')[0];
-    saveDrawData(data);
-  },3000);
+    let rotation = 0;
+    rotateInterval = setInterval(() => { 
+        rotation += 1; 
+        group.style.transform = `translate(-50%,-50%) rotateY(${rotation}deg)`; 
+    }, 20);
+
+    centerCardTimeout = setTimeout(() => {
+        clearInterval(rotateInterval); 
+        rotateInterval = null;
+        cards.forEach(c => c.style.opacity = 0);
+
+        // ===== 抽卡邏輯 =====
+        let chosenCards = [];
+        if (data.drawCount + 1 === 12) {
+            chosenCards = cardImages.slice(0, 6); // 第12次保底6張不同卡
+        } else if (data.drawCount + 1 === 15) {
+            chosenCards = cardImages.slice(0, 7); // 第15次保底完整7張組
+        } else {
+            // 一般抽卡依權重
+            let totalWeight = cardPool.reduce((sum, c) => sum + c.weight, 0);
+            let rnd = Math.random() * totalWeight;
+            for (let i = 0; i < cardPool.length; i++) {
+                if (rnd < cardPool[i].weight) {
+                    chosenCards = [cardPool[i].img];
+                    break;
+                }
+                rnd -= cardPool[i].weight;
+            }
+        }
+
+        // 顯示中央卡（只顯示第一張，如果保底多張，可以依需求改）
+        showCenterCard(chosenCards[0]);
+
+        // 存入抽卡紀錄
+        chosenCards.forEach(img => data.cards.push(img));
+        data.drawCount++; 
+        data.totalDraws++; 
+        data.lastDrawDate = new Date().toISOString().split('T')[0];
+        saveDrawData(data);
+
+    }, 3000);
 }
+
 
 function showCenterCard(imageUrl){
   const overlay=document.getElementById('overlay');
