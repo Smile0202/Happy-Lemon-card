@@ -292,7 +292,6 @@ html, body {
     <div class="cardGroup" id="cardGroup"></div>
     <div id="overlay"></div>
   </div>
-  <!-- 透明按鈕，用來認證手搖授權 -->
   <button class="drawButton" id="enableShake"></button>
   <button class="viewButton" onclick="showMyCards()">查看我的卡片</button>
 </div>
@@ -312,39 +311,56 @@ html, body {
 </div>
 
 <script>
-  function resetDrawData() {
-  localStorage.removeItem('drawData');
-  alert("抽卡紀錄已重置 ✅");
+function resetDrawData() {
+  let data = getDrawData();
+  if (confirm(`目前已有 ${new Set(data.cards).size}/7 張不同卡片\n確定要重置今日抽卡次數嗎？`)) {
+    data.drawCount = 0;
+    data.lastDrawDate = new Date().toISOString().split('T')[0];
+    saveDrawData(data);
+    alert("✅ 今日抽卡次數已重置！");
+  }
 }
-/* 設定視窗高度變數 */
+
 function setFullHeight(){
   document.documentElement.style.setProperty('--vh',window.innerHeight*0.01+'px');
 }
 window.addEventListener('resize',setFullHeight);
 setFullHeight();
 
-/* 抽卡資料 */
 const backImage='9.jpg';
 const cardImages=['1.jpg','22.jpg','3.jpg','4.jpg','21.jpg','20.jpg','23.jpg'];
-const cardActivities={'1.jpg':'品牌紀念小物','22.jpg':'買任一雞蛋仔送1杯梔春金烏龍','3.jpg':'現折10元（塔可系列除外）','4.jpg':'金桔系列折5元','21.jpg':'點中杯升級大杯免費','20.jpg':'金桔系列現折10元','23.jpg':'第二杯10塊'};
-// 卡片權重設定（稀有卡可設定較低權重）
+const cardActivities={
+  '1.jpg':'品牌紀念小物',
+  '22.jpg':'買任一雞蛋仔送1杯梔春金烏龍',
+  '3.jpg':'現折10元（塔可系列除外）',
+  '4.jpg':'金桔系列折5元',
+  '21.jpg':'點中杯升級大杯免費',
+  '20.jpg':'金桔系列現折10元',
+  '23.jpg':'第二杯10塊'
+};
+
 const cardPool = [
-  {img:'1.jpg', weight: 30},  // 普通卡
+  {img:'1.jpg', weight: 30},
   {img:'22.jpg', weight: 30},
   {img:'3.jpg', weight: 30},
   {img:'4.jpg', weight: 30},
   {img:'21.jpg', weight: 30},
   {img:'20.jpg', weight: 30},
-  {img:'23.jpg', weight: 10}   // 稀有卡，權重低
+  {img:'23.jpg', weight: 10}
 ];
 
 function getDrawData() {
   let data = JSON.parse(localStorage.getItem('drawData')) || { lastDrawDate: null, drawCount:0, cards:[], totalDraws:0 };
   const today = new Date().toISOString().split('T')[0];
-  if(data.lastDrawDate!==today){ data={ lastDrawDate:today, drawCount:0, cards:data.cards, totalDraws:data.totalDraws }; }
+  if(data.lastDrawDate!==today){ 
+    data = { lastDrawDate:today, drawCount:0, cards:data.cards, totalDraws:data.totalDraws }; 
+  }
   return data;
 }
-function saveDrawData(data){ localStorage.setItem('drawData',JSON.stringify(data)); }
+
+function saveDrawData(data){ 
+  localStorage.setItem('drawData',JSON.stringify(data)); 
+}
 
 let rotateInterval=null;
 let centerCardTimeout=null;
@@ -366,73 +382,74 @@ function drawCardByWeight(pool){
     rnd -= pool[i].weight;
   }
 }
-function drawUniqueCards(num, pool) {
-    let chosen = new Set();
-    while(chosen.size < num){
-        let img = drawCardByWeight(pool);
-        chosen.add(img); // Set 自動去重
+
+function smartDrawCard(data) {
+  const remainingDraws = 15 - data.drawCount;
+  const collectedSet = new Set(data.cards);
+  const missingCards = cardImages.filter(img => !collectedSet.has(img));
+  const neededUnique = 7 - collectedSet.size;
+
+  if (neededUnique > 0 && remainingDraws === neededUnique) {
+    return missingCards[Math.floor(Math.random() * missingCards.length)];
+  }
+
+  const adjustedPool = cardPool.map(card => {
+    const baseWeight = card.weight || 30;
+    if (missingCards.includes(card.img)) {
+      const progress = Math.min(1, (15 - remainingDraws) / 10);
+      return {...card, weight: Math.floor(baseWeight * (1 + progress * 9))};
     }
-    return Array.from(chosen);
+    return card;
+  });
+
+  return drawCardByWeight(adjustedPool);
 }
 
-/* 核心抽卡流程 */
 function startDraw() {
-    let data = getDrawData();
-    if (data.drawCount >= 15) { 
-        alert("🍋今天的抽卡能量歸零！⚡️明天再來！"); 
-        return; 
-    }
+  let data = getDrawData();
+  if (data.drawCount >= 15) { 
+    alert("🍋今天的抽卡能量歸零！⚡️明天再來！"); 
+    return; 
+  }
 
-    resetDraw();
-    const group = document.getElementById("cardGroup");
-    const total = 7;
-    let cards = [];
+  resetDraw();
+  const group = document.getElementById("cardGroup");
+  
+  for (let i = 0; i < 7; i++) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.backgroundImage = `url('${backImage}')`;
+    card.style.transform = `translate(-50%,-50%) rotateY(${(i/7)*360}deg) translateZ(30vw)`;
+    group.appendChild(card);
+  }
 
-    // 創建卡片模型
-    for (let i = 0; i < total; i++) {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.backgroundImage = `url('${backImage}')`;
-        const angle = (i / total) * 360;
-        card.style.transform = `translate(-50%,-50%) rotateY(${angle}deg) translateZ(30vw)`;
-        group.appendChild(card);
-        cards.push(card);
-    }
+  let rotation = 0;
+  rotateInterval = setInterval(() => { 
+    rotation += 2; 
+    group.style.transform = `translate(-50%,-50%) rotateY(${rotation}deg)`; 
+  }, 20);
 
-    let rotation = 0;
-    rotateInterval = setInterval(() => { 
-        rotation += 1; 
-        group.style.transform = `translate(-50%,-50%) rotateY(${rotation}deg)`; 
-    }, 20);
-
-    centerCardTimeout = setTimeout(() => {
-        clearInterval(rotateInterval); 
-        rotateInterval = null;
-        cards.forEach(c => c.style.opacity = 0);
-
-        // ===== 抽卡邏輯 =====
-        let chosenCards = [];
-        if (data.drawCount + 1 === 12) {
-            chosenCards = drawUniqueCards(6, cardPool); // 第12次保底抽6張不同卡
-        } else if (data.drawCount + 1 === 15) {
-            chosenCards = drawUniqueCards(7, cardPool); // 第15次保底抽7張不同卡
-        } else {
-            chosenCards = [drawCardByWeight(cardPool)]; // 一般抽一張
-        }
-
-        // 顯示中央卡（只顯示第一張，如果保底多張，可以依需求改）
-        showCenterCard(chosenCards[0]);
-
-        // 存入抽卡紀錄
-        chosenCards.forEach(img => data.cards.push(img));
-        data.drawCount++; 
-        data.totalDraws++; 
-        data.lastDrawDate = new Date().toISOString().split('T')[0];
-        saveDrawData(data);
-
-    }, 3000);
+  centerCardTimeout = setTimeout(() => {
+    clearInterval(rotateInterval);
+    document.querySelectorAll(".card").forEach(c => c.style.opacity = 0);
+    if (navigator.vibrate) navigator.vibrate(200);
+    
+    const drawnCard = smartDrawCard(data);
+    
+    setTimeout(() => {
+      showCenterCard(drawnCard);
+      
+      data.cards.push(drawnCard);
+      data.drawCount++;
+      data.totalDraws++;
+      saveDrawData(data);
+      
+      if (new Set(data.cards).size === 7) {
+        setTimeout(() => alert("🎉 恭喜集滿一套卡片！"), 1000);
+      }
+    }, 500);
+  }, 3000);
 }
-
 
 function showCenterCard(imageUrl){
   const overlay=document.getElementById('overlay');
@@ -445,7 +462,10 @@ function showCenterCard(imageUrl){
   currentCenterCard=centerCard;
   requestAnimationFrame(()=>centerCard.classList.add('show'));
   spawnStars(centerCard,20);
-  setTimeout(()=>{ overlay.style.background='rgba(0,0,0,0)'; if(centerCard){ centerCard.remove(); currentCenterCard=null;} },5000);
+  setTimeout(()=>{ 
+    overlay.style.background='rgba(0,0,0,0)'; 
+    if(centerCard){ centerCard.remove(); currentCenterCard=null;} 
+  },5000);
 }
 
 function spawnStars(target,count){
@@ -464,9 +484,11 @@ function spawnStars(target,count){
   }
 }
 
-/* 我的卡片模態 */
 let redeemTarget=null;
-function closeMyCardsModal(){document.getElementById('myCardsModal').style.display='none';}
+function closeMyCardsModal(){
+  document.getElementById('myCardsModal').style.display='none';
+}
+
 function showMyCards(){
   const modal=document.getElementById('myCardsModal');
   const content=document.getElementById('myCardsContent');
@@ -479,18 +501,31 @@ function showMyCards(){
     groupCount++;
     content.innerHTML+=`<h3>第 ${groupCount} 組完整七張 🎉</h3>`;
     let fullSetHTML=`<div class="fullSet"><div class="fullSetRow">`;
-    for(let i=0;i<4;i++){ fullSetHTML+=`<img src="${cardImages[i]}" alt="卡片">`; myCards.splice(myCards.indexOf(cardImages[i]),1);}
+    for(let i=0;i<4;i++){ 
+      fullSetHTML+=`<img src="${cardImages[i]}" alt="卡片">`; 
+      myCards.splice(myCards.indexOf(cardImages[i]),1);
+    }
     fullSetHTML+=`</div><div class="fullSetRow">`;
-    for(let i=4;i<7;i++){ fullSetHTML+=`<img src="${cardImages[i]}" alt="卡片">`; myCards.splice(myCards.indexOf(cardImages[i]),1);}
+    for(let i=4;i<7;i++){ 
+      fullSetHTML+=`<img src="${cardImages[i]}" alt="卡片">`; 
+      myCards.splice(myCards.indexOf(cardImages[i]),1);
+    }
     fullSetHTML+=`</div></div>`;
     content.innerHTML+=fullSetHTML;
-    content.innerHTML+=`<div style="margin:15px;"><button onclick="event.stopPropagation(); openRedeemModal('group',${groupCount})" style="padding:10px 20px;font-size:18px;border:none;border-radius:8px;background:#ff6600;color:white;cursor:pointer;">兌換一杯飲品</button></div>`;
+    content.innerHTML+=`<div style="margin:15px;">
+      <button onclick="event.stopPropagation(); openRedeemModal('group',${groupCount})" 
+      style="padding:10px 20px;font-size:18px;border:none;border-radius:8px;background:#ff6600;color:white;cursor:pointer;">
+      兌換一杯飲品
+      </button>
+    </div>`;
   }
 
   if(myCards.length>0){
     content.innerHTML+="<h3>零散卡片</h3>";
     let zeroHTML=`<div class="zeroCards">`;
-    myCards.forEach(img=>{zeroHTML+=`<img src="${img}" alt="卡片" onclick="event.stopPropagation(); openRedeemModal('single','${img}')">`;});
+    myCards.forEach(img=>{
+      zeroHTML+=`<img src="${img}" alt="卡片" onclick="event.stopPropagation(); openRedeemModal('single','${img}')">`;
+    });
     zeroHTML+=`</div>`;
     content.innerHTML+=zeroHTML;
   }
@@ -498,18 +533,26 @@ function showMyCards(){
   modal.style.display='flex';
 }
 
-/* 兌換模態 */
 function openRedeemModal(type,target){
   redeemTarget={type,target};
   const modal=document.getElementById("redeemModal");
   const textEl=document.getElementById("redeemText");
 
-  if(type==="single"){const activity=cardActivities[target]||"兌換活動"; textEl.innerText=`卡片活動：${activity}\n確認兌換這張卡片嗎？`;}
-  else if(type==="group"){textEl.innerText=`確認要兌換第 ${target} 組完整七張卡，換取一杯飲品嗎？`;}
+  if(type==="single"){
+    const activity=cardActivities[target]||"兌換活動"; 
+    textEl.innerText=`卡片活動：${activity}\n確認兌換這張卡片嗎？`;
+  } else if(type==="group"){
+    textEl.innerText=`確認要兌換第 ${target} 組完整七張卡，換取一杯飲品嗎？`;
+  }
 
   modal.style.display="flex";
 }
-function closeRedeem(){document.getElementById("redeemModal").style.display="none"; redeemTarget=null;}
+
+function closeRedeem(){
+  document.getElementById("redeemModal").style.display="none"; 
+  redeemTarget=null;
+}
+
 function confirmRedeem(event){
   event.stopPropagation();
   if(!redeemTarget) return;
@@ -520,7 +563,10 @@ function confirmRedeem(event){
     if(index!==-1) data.cards.splice(index,1);
     alert("兌換成功！請到櫃台領取優惠 🎉");
   } else if(redeemTarget.type==="group"){
-    cardImages.forEach(img=>{const idx=data.cards.indexOf(img); if(idx!==-1) data.cards.splice(idx,1);});
+    cardImages.forEach(img=>{
+      const idx=data.cards.indexOf(img); 
+      if(idx!==-1) data.cards.splice(idx,1);
+    });
     alert("兌換成功！請到櫃台領取免費飲品 🍹");
   }
 
@@ -529,7 +575,6 @@ function confirmRedeem(event){
   showMyCards();
 }
 
-/* ================= 手搖偵測 ================== */
 let lastTime=0;
 let lastX=null,lastY=null,lastZ=null;
 
@@ -537,12 +582,18 @@ document.getElementById("enableShake").addEventListener("click", async function(
   try{
     if(typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function"){
       const response=await DeviceMotionEvent.requestPermission();
-      if(response!=="granted"){ alert("需要允許動作感測器才能使用搖一搖抽卡！"); return; }
+      if(response!=="granted"){ 
+        alert("需要允許動作感測器才能使用搖一搖抽卡！"); 
+        return; 
+      }
     }
     this.style.display="none";
     initShakeDetection();
     alert("✅ 搖一搖抽卡已啟用！拿起手機搖一搖試試～");
-  }catch(e){ console.error(e); alert("裝置不支援或權限被拒絕"); }
+  }catch(e){ 
+    console.error(e); 
+    alert("裝置不支援或權限被拒絕"); 
+  }
 });
 
 function initShakeDetection(){
