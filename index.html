@@ -285,6 +285,8 @@ html, body {
 </style>
 </head>
 <body>
+  <button class="viewButton" style="right:50%; transform:translateX(50%);" onclick="resetDailyDraw()">重置抽卡</button>
+
 <div id="mobileScreen">
   <div id="cardContainer">
     <div class="cardGroup" id="cardGroup"></div>
@@ -310,6 +312,13 @@ html, body {
 </div>
 
 <script>
+  function resetDailyDraw(){
+  if(confirm("⚠️ 確定要重置今天的抽卡紀錄嗎？")){
+    localStorage.removeItem('drawData'); // 清除抽卡資料
+    alert("✅ 今日抽卡紀錄已重置，可以重新測試！");
+  }
+}
+
 /* 設定視窗高度變數 */
 function setFullHeight(){
   document.documentElement.style.setProperty('--vh',window.innerHeight*0.01+'px');
