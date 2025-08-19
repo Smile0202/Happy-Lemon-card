@@ -364,7 +364,7 @@ function drawCardByWeight(pool){
 /* 核心抽卡流程 */
 function startDraw() {
   const data=getDrawData();
-  if(data.drawCount>=3){ alert("🍋今天的抽卡能量歸零！⚡️明天再來！"); return; }
+  if(data.drawCount>=15){ alert("🍋今天的抽卡能量歸零！⚡️明天再來！"); return; }
 
   resetDraw();
   const group=document.getElementById("cardGroup");
@@ -519,7 +519,7 @@ function initShakeDetection(){
       let x=accel.x, y=accel.y, z=accel.z;
       if(lastX!==null){
         let speed=Math.abs(x+y+z-lastX-lastY-lastZ)/diffTime*10000;
-        if(speed>3000){ startDraw(); }
+        if(speed>2000){ startDraw(); }
       }
       lastX=x; lastY=y; lastZ=z;
     }
