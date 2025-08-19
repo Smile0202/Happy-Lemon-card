@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>3D 抽卡 Demo - 改良版</title>
+<title>3D 抽卡 Demo - 搖一搖版</title>
 <style>
 html, body {
   margin:0;
@@ -162,7 +162,6 @@ html, body {
   padding-bottom: 20px;
 }
 
-/* 卡片容器調整 */
 .fullSet {
   display: flex;
   flex-direction: column;
@@ -179,19 +178,16 @@ html, body {
   width: 100%;
 }
 
-/* 第一行4張卡片 */
 .fullSetRow:first-child {
   grid-template-columns: repeat(4, 1fr);
 }
 
-/* 第二行3張卡片 - 使用特殊佈局使其置中 */
 .fullSetRow:last-child {
   grid-template-columns: repeat(3, 1fr);
-  max-width: 75%; /* 讓3張卡片的行寬度是4張的75% */
-  margin: 0 auto; /* 置中 */
+  max-width: 75%;
+  margin: 0 auto;
 }
 
-/* 零散卡片保持4列 */
 .zeroCards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -201,7 +197,6 @@ html, body {
   margin: 0 auto;
 }
 
-/* 卡片大小調整 */
 .fullSetRow img, .zeroCards img {
   width: 100%;
   aspect-ratio: 3/4;
@@ -231,7 +226,6 @@ html, body {
 }
 
 .close-button:hover{background:rgba(255,255,255,0.3);}
-
 
 #redeemModal{
   display:none;
@@ -268,7 +262,6 @@ html, body {
 #confirmBtn{background:#ffcc00;}
 #cancelBtn{background:#ccc;}
 
-/* 響應式調整 */
 @media (max-width: 600px) {
   .fullSetRow, .zeroCards {
     grid-template-columns: repeat(4, 1fr);
@@ -297,7 +290,8 @@ html, body {
     <div class="cardGroup" id="cardGroup"></div>
     <div id="overlay"></div>
   </div>
-  <button class="drawButton" onclick="startDraw()"></button>
+  <!-- 透明按鈕，用來認證手搖授權 -->
+  <button class="drawButton" id="enableShake"></button>
   <button class="viewButton" onclick="showMyCards()">查看我的卡片</button>
 </div>
 
@@ -316,27 +310,29 @@ html, body {
 </div>
 
 <script>
+/* 設定視窗高度變數 */
 function setFullHeight(){
   document.documentElement.style.setProperty('--vh',window.innerHeight*0.01+'px');
 }
 window.addEventListener('resize',setFullHeight);
 setFullHeight();
 
+/* 抽卡資料 */
 const backImage='9.jpg';
 const cardImages=['1.jpg','22.jpg','3.jpg','4.jpg','21.jpg','20.jpg','23.jpg'];
 const cardActivities={'1.jpg':'品牌紀念小物','22.jpg':'買任一雞蛋仔送1杯梔春金烏龍','3.jpg':'現折10元（塔可系列除外）','4.jpg':'金桔系列折5元','21.jpg':'點中杯升級大杯免費','20.jpg':'金桔系列現折10元','23.jpg':'第二杯10塊'};
 
-function getDrawData(){
-  let data = JSON.parse(localStorage.getItem('drawData')) || {today:new Date().toISOString().split('T')[0],count:0,cards:[]};
+function getDrawData() {
+  let data = JSON.parse(localStorage.getItem('drawData')) || { lastDrawDate: null, drawCount:0, cards:[], totalDraws:0 };
   const today = new Date().toISOString().split('T')[0];
-  if(data.today !== today){ data={today:today,count:0,cards:[]}; }
+  if(data.lastDrawDate!==today){ data={ lastDrawDate:today, drawCount:0, cards:data.cards, totalDraws:data.totalDraws }; }
   return data;
 }
-function saveDrawData(data){localStorage.setItem('drawData',JSON.stringify(data));}
+function saveDrawData(data){ localStorage.setItem('drawData',JSON.stringify(data)); }
 
-let rotateInterval = null;
-let centerCardTimeout = null;
-let currentCenterCard = null;
+let rotateInterval=null;
+let centerCardTimeout=null;
+let currentCenterCard=null;
 
 function resetDraw() {
   if(rotateInterval){ clearInterval(rotateInterval); rotateInterval=null; }
@@ -346,10 +342,14 @@ function resetDraw() {
   document.getElementById("overlay").style.background="rgba(0,0,0,0)";
 }
 
-function startDraw(){
+/* 核心抽卡流程 */
+function startDraw() {
+  const data=getDrawData();
+  if(data.drawCount>=3){ alert("🍋今天的抽卡能量歸零！⚡️明天再來！"); return; }
+
   resetDraw();
   const group=document.getElementById("cardGroup");
-  const total=6; 
+  const total=7;
   let cards=[];
   for(let i=0;i<total;i++){
     const card=document.createElement("div");
@@ -360,8 +360,9 @@ function startDraw(){
     group.appendChild(card);
     cards.push(card);
   }
+
   let rotation=0;
-  rotateInterval=setInterval(()=>{rotation+=1; group.style.transform=`translate(-50%,-50%) rotateY(${rotation}deg)`;},20);
+  rotateInterval=setInterval(()=>{ rotation+=1; group.style.transform=`translate(-50%,-50%) rotateY(${rotation}deg)`; },20);
 
   centerCardTimeout=setTimeout(()=>{
     clearInterval(rotateInterval); rotateInterval=null;
@@ -369,8 +370,8 @@ function startDraw(){
     const chosenCard=cardImages[Math.floor(Math.random()*cardImages.length)];
     showCenterCard(chosenCard);
     let data=getDrawData();
-    data.count++;
-    data.cards.push(chosenCard);
+    data.drawCount++; data.totalDraws++; data.cards.push(chosenCard);
+    data.lastDrawDate=new Date().toISOString().split('T')[0];
     saveDrawData(data);
   },3000);
 }
@@ -386,10 +387,7 @@ function showCenterCard(imageUrl){
   currentCenterCard=centerCard;
   requestAnimationFrame(()=>centerCard.classList.add('show'));
   spawnStars(centerCard,20);
-  setTimeout(()=>{
-    overlay.style.background='rgba(0,0,0,0)';
-    if(centerCard){ centerCard.remove(); currentCenterCard=null; }
-  },5000);
+  setTimeout(()=>{ overlay.style.background='rgba(0,0,0,0)'; if(centerCard){ centerCard.remove(); currentCenterCard=null;} },5000);
 }
 
 function spawnStars(target,count){
@@ -410,9 +408,7 @@ function spawnStars(target,count){
 
 /* 我的卡片模態 */
 let redeemTarget=null;
-
 function closeMyCardsModal(){document.getElementById('myCardsModal').style.display='none';}
-
 function showMyCards(){
   const modal=document.getElementById('myCardsModal');
   const content=document.getElementById('myCardsContent');
@@ -473,6 +469,42 @@ function confirmRedeem(event){
   saveDrawData(data);
   closeRedeem();
   showMyCards();
+}
+
+/* ================= 手搖偵測 ================== */
+let lastTime=0;
+let lastX=null,lastY=null,lastZ=null;
+
+document.getElementById("enableShake").addEventListener("click", async function(){
+  try{
+    if(typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function"){
+      const response=await DeviceMotionEvent.requestPermission();
+      if(response!=="granted"){ alert("需要允許動作感測器才能使用搖一搖抽卡！"); return; }
+    }
+    this.style.display="none";
+    initShakeDetection();
+    alert("✅ 搖一搖抽卡已啟用！拿起手機搖一搖試試～");
+  }catch(e){ console.error(e); alert("裝置不支援或權限被拒絕"); }
+});
+
+function initShakeDetection(){
+  window.addEventListener("devicemotion",function(event){
+    const accel=event.accelerationIncludingGravity;
+    if(!accel) return;
+
+    const curTime=new Date().getTime();
+    if((curTime-lastTime)>100){
+      const diffTime=curTime-lastTime;
+      lastTime=curTime;
+
+      let x=accel.x, y=accel.y, z=accel.z;
+      if(lastX!==null){
+        let speed=Math.abs(x+y+z-lastX-lastY-lastZ)/diffTime*10000;
+        if(speed>3000){ startDraw(); }
+      }
+      lastX=x; lastY=y; lastZ=z;
+    }
+  },false);
 }
 </script>
 </body>
