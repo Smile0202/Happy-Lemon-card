@@ -366,6 +366,14 @@ function drawCardByWeight(pool){
     rnd -= pool[i].weight;
   }
 }
+function drawUniqueCards(num, pool) {
+    let chosen = new Set();
+    while(chosen.size < num){
+        let img = drawCardByWeight(pool);
+        chosen.add(img); // Set 自動去重
+    }
+    return Array.from(chosen);
+}
 
 /* 核心抽卡流程 */
 function startDraw() {
@@ -405,20 +413,11 @@ function startDraw() {
         // ===== 抽卡邏輯 =====
         let chosenCards = [];
         if (data.drawCount + 1 === 12) {
-            chosenCards = cardImages.slice(0, 6); // 第12次保底6張不同卡
+            chosenCards = drawUniqueCards(6, cardPool); // 第12次保底抽6張不同卡
         } else if (data.drawCount + 1 === 15) {
-            chosenCards = cardImages.slice(0, 7); // 第15次保底完整7張組
+            chosenCards = drawUniqueCards(7, cardPool); // 第15次保底抽7張不同卡
         } else {
-            // 一般抽卡依權重
-            let totalWeight = cardPool.reduce((sum, c) => sum + c.weight, 0);
-            let rnd = Math.random() * totalWeight;
-            for (let i = 0; i < cardPool.length; i++) {
-                if (rnd < cardPool[i].weight) {
-                    chosenCards = [cardPool[i].img];
-                    break;
-                }
-                rnd -= cardPool[i].weight;
-            }
+            chosenCards = [drawCardByWeight(cardPool)]; // 一般抽一張
         }
 
         // 顯示中央卡（只顯示第一張，如果保底多張，可以依需求改）
