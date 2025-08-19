@@ -321,6 +321,16 @@ setFullHeight();
 const backImage='9.jpg';
 const cardImages=['1.jpg','22.jpg','3.jpg','4.jpg','21.jpg','20.jpg','23.jpg'];
 const cardActivities={'1.jpg':'品牌紀念小物','22.jpg':'買任一雞蛋仔送1杯梔春金烏龍','3.jpg':'現折10元（塔可系列除外）','4.jpg':'金桔系列折5元','21.jpg':'點中杯升級大杯免費','20.jpg':'金桔系列現折10元','23.jpg':'第二杯10塊'};
+// 卡片權重設定（稀有卡可設定較低權重）
+const cardPool = [
+  {img:'1.jpg', weight: 30},  // 普通卡
+  {img:'22.jpg', weight: 30},
+  {img:'3.jpg', weight: 30},
+  {img:'4.jpg', weight: 30},
+  {img:'21.jpg', weight: 30},
+  {img:'20.jpg', weight: 30},
+  {img:'23.jpg', weight: 10}   // 稀有卡，權重低
+];
 
 function getDrawData() {
   let data = JSON.parse(localStorage.getItem('drawData')) || { lastDrawDate: null, drawCount:0, cards:[], totalDraws:0 };
@@ -340,6 +350,15 @@ function resetDraw() {
   if(currentCenterCard){ currentCenterCard.remove(); currentCenterCard=null; }
   document.getElementById("cardGroup").innerHTML="";
   document.getElementById("overlay").style.background="rgba(0,0,0,0)";
+}
+
+function drawCardByWeight(pool){
+  let totalWeight = pool.reduce((sum, c) => sum + c.weight, 0);
+  let rnd = Math.random() * totalWeight;
+  for(let i=0;i<pool.length;i++){
+    if(rnd < pool[i].weight) return pool[i].img;
+    rnd -= pool[i].weight;
+  }
 }
 
 /* 核心抽卡流程 */
@@ -367,7 +386,7 @@ function startDraw() {
   centerCardTimeout=setTimeout(()=>{
     clearInterval(rotateInterval); rotateInterval=null;
     cards.forEach(c=>c.style.opacity=0);
-    const chosenCard=cardImages[Math.floor(Math.random()*cardImages.length)];
+    const chosenCard = drawCardByWeight(cardPool);
     showCenterCard(chosenCard);
     let data=getDrawData();
     data.drawCount++; data.totalDraws++; data.cards.push(chosenCard);
